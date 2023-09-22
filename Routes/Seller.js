@@ -3,6 +3,8 @@ const sellerRouter = express.Router();
 const sellerController = require('../Controllers/Seller');
 
 sellerRouter.post('/create',sellerController.createSeller)
-.get('/verify',sellerController.verifySeller);
+.get('/verify',sellerController.verifySeller)
+.post('/login',sellerController.loginSeller)
+.post('/edit',sellerController.editSeller);
 
 exports.Router = sellerRouter;
