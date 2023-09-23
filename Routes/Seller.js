@@ -7,4 +7,4 @@ sellerRouter.post('/create',sellerController.createSeller)
 .post('/login',sellerController.loginSeller)
 .post('/edit',sellerController.editSeller);
 
-exports.Router = sellerRouter;
+exports.Routes = sellerRouter;

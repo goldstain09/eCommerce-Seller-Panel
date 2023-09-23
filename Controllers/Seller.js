@@ -53,6 +53,7 @@ exports.verifySeller = async (req, res) => {
         shopName: seller.shopName,
         sellerEmail: seller.sellerEmail,
         verificationSuccess: true,
+        id:seller._id
       });
     }
   } catch (error) {

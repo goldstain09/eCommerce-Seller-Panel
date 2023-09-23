@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const SellerRoutes = require('./Routes/Seller');
+const ProductRoutes = require('./Routes/Product');
 
 const server = express();
 console.log('server started');
@@ -15,6 +16,7 @@ async function main() {
 
 server.use(cors());
 server.use(express.json());
-server.use('/seller',SellerRoutes.Router)
+server.use('/seller',SellerRoutes.Routes);
+server.use('/api', ProductRoutes.Routes);
 
 server.listen(8081);
