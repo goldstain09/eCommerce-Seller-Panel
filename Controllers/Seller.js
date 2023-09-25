@@ -1,5 +1,7 @@
-const model = require("../Models/Seller");
-const Seller = model.Sellers;
+const modelP = require("../Models/Product");
+const modelS = require("../Models/Seller");
+const Product = modelP.Product;
+const Seller = modelS.Sellers;
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const fs = require("fs");
@@ -46,14 +48,14 @@ exports.verifySeller = async (req, res) => {
     let decoded = jwt.verify(sellerTok, publicKey);
     if (decoded.email) {
       const seller = await Seller.findOne({ sellerEmail: decoded.email });
-      // let sellerName = seller.shopName;
-      // const products = await Product.find({seller:sellerName})
+      const products = await Product.find({sellerId:seller.id});
       res.json({
         ownerName: seller.ownerName,
         shopName: seller.shopName,
         sellerEmail: seller.sellerEmail,
         verificationSuccess: true,
-        id:seller._id
+        id:seller._id,
+        products:products
       });
     }
   } catch (error) {
