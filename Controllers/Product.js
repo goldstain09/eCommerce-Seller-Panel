@@ -34,3 +34,50 @@ exports.createProduct = async (req, res) => {
     })
   }
 };
+
+
+exports.editProduct = async (req,res) => {
+  const updateOnceProductData = req.body.updatedProduct;
+  const { sellerToken, sellerId } = req.body.sellerAuthInfo;
+  try {
+    const seller = await Seller.findById(sellerId);
+    const decoded = jwt.verify(sellerToken, publicKey);
+    if(decoded.email === seller.sellerEmail){
+      const product = await Product.findByIdAndUpdate(updateOnceProductData._id, updateOnceProductData);
+      res.json({
+        productUpdated:true
+      })
+    }else{
+      res.json({
+        productUpdated:false
+      })
+    }
+  } catch (error) {
+    res.json({
+      productUpdated:false
+    })
+  }
+}
+
+
+exports.deleteProduct = async (req,res) => {
+  const {id , sellerAuthInfo} = req.body;
+  try {
+    const seller = await Seller.findById(sellerAuthInfo.sellerId);
+    const decoded = jwt.verify(sellerAuthInfo.sellerToken, publicKey);
+    if(decoded.email === seller.sellerEmail){
+      const product = await Product.findByIdAndDelete(id);
+      res.json({
+        productDeleted:true
+      });
+    }else{
+      res.json({
+        productDeleted:false
+      })
+    }
+  } catch (error) {
+    res.json({
+      productDeleted:false
+    })
+  }
+}
