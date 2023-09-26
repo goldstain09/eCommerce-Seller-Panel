@@ -61,7 +61,7 @@ exports.verifySeller = async (req, res) => {
   } catch (error) {
     res.json({ verificationSuccess: false }).status(402);
   }
-};
+}; 
 
 exports.loginSeller = async (req, res) => {
   const { sellerEmail, password } = req.body;
