@@ -4,6 +4,7 @@ const cors = require('cors');
 const SellerRoutes = require('./Routes/Seller');
 const ProductRoutes = require('./Routes/Product');
 
+
 const server = express();
 console.log('server started');
 
