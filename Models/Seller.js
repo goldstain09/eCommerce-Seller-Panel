@@ -5,6 +5,9 @@ const sellerSchema = new mongoose.Schema({
     shopName:{type:String,required:true},
     sellerEmail:{type:String,required:true, unique:true},
     password:{type:String,required:true},
+    completedOrders:{type:[Object]},
+    openOrders:{type:[Object]},
+    followers:{type:[Object]},
     sellerToken:String
 });
 

@@ -1,7 +1,9 @@
 const modelP = require("../Models/Product");
 const modelS = require("../Models/Seller");
+const modelU = require("../Models/User");
 const Product = modelP.Product;
 const Seller = modelS.Sellers;
+const User = modelU.Users;
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const fs = require("fs");
@@ -55,7 +57,9 @@ exports.verifySeller = async (req, res) => {
         sellerEmail: seller.sellerEmail,
         verificationSuccess: true,
         id:seller._id,
-        products:products
+        products:products,
+        openOrders:seller.openOrders,
+        completedOrders:seller.completedOrders
       });
     }
   } catch (error) {
@@ -122,3 +126,56 @@ exports.editSeller = async (req, res) => {
     }
   }
 };
+
+
+exports.updateOrderStatus = async(req,res) => {
+  const {orderStatus,sellerToken,sellerId,orderDetails} = req.body;
+  try {
+    let decoded = jwt.verify(sellerToken, publicKey);
+    const seller = await Seller.findById(sellerId);
+    const user = await User.findById(orderDetails.orderedBy.userId);
+    if(decoded.email === seller.sellerEmail){
+      if(orderStatus === 'Order is Delivered'){
+        const productThatIsDelivered = seller.openOrders.filter((item)=> item.orderUniqueId === orderDetails.orderUniqueId);
+        const productsThatAreNotDelivered = seller.openOrders.filter((item)=> item.orderUniqueId !== orderDetails.orderUniqueId);
+        productThatIsDelivered[0].status = orderStatus;
+        seller.completedOrders.push(productThatIsDelivered[0]);
+        seller.openOrders = productsThatAreNotDelivered;
+        await seller.save();
+        
+        const productWhichStatusShouldBeUpdate = user.orders.filter((item)=> item.orderUniqueId === orderDetails.orderUniqueId);
+        productWhichStatusShouldBeUpdate[0].status = orderStatus;
+        // console.log(user.orders);
+        // await user.save();
+        await User.findByIdAndUpdate(orderDetails.orderedBy.userId,{$set:{orders:user.orders}});
+
+        res.json({
+          statusUpdated:true,
+          orderDelivered:true
+        });
+      }else{
+        const productWhichStatusIsChanged = seller.openOrders.filter((item)=> item.orderUniqueId === orderDetails.orderUniqueId);
+        productWhichStatusIsChanged[0].status = orderStatus;
+        await Seller.findByIdAndUpdate(sellerId,{$set:{openOrders:seller.openOrders}});
+
+
+        const productWhichStatusShouldBeUpdate = user.orders.filter((item)=> item.orderUniqueId === orderDetails.orderUniqueId);
+        productWhichStatusShouldBeUpdate[0].status = orderStatus;
+        await User.findByIdAndUpdate(orderDetails.orderedBy.userId,{$set:{orders:user.orders}});
+        res.json({
+          statusUpdated:true,
+          orderDelivered:false
+        });
+      }
+    }else{
+      res.json({
+        statusUpdated:false
+      });
+    }
+  } catch (error) {
+    res.json({
+      statusUpdated:false,
+      someOtherErrorOccured:true
+    });
+  }
+}
