@@ -59,7 +59,8 @@ exports.verifySeller = async (req, res) => {
         id:seller._id,
         products:products,
         openOrders:seller.openOrders,
-        completedOrders:seller.completedOrders
+        completedOrders:seller.completedOrders,
+        followers:seller.followers
       });
     }
   } catch (error) {
