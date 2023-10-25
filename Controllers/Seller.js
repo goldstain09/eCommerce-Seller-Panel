@@ -6,16 +6,19 @@ const Seller = modelS.Sellers;
 const User = modelU.Users;
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const fs = require("fs");
-const path = require("path");
-const privateKey = fs.readFileSync(
-  path.resolve(__dirname, "../private.key"),
-  "utf-8"
-);
-const publicKey = fs.readFileSync(
-  path.resolve(__dirname, "../public.key"),
-  "utf-8"
-);
+// const fs = require("fs");
+// const path = require("path");
+// const privateKey = fs.readFileSync(
+//   path.resolve(__dirname, "../private.key"),
+//   "utf-8"
+// );
+// const publicKey = fs.readFileSync(
+//   path.resolve(__dirname, "../public.key"),
+//   "utf-8"
+// );
+require("dotenv").config();
+const publicKey = process.env.PUBLIC_KEY;
+const privateKey = process.env.PRIVATE_KEY;
 
 exports.createSeller = async (req, res) => {
   const seller = new Seller(req.body);
@@ -50,23 +53,23 @@ exports.verifySeller = async (req, res) => {
     let decoded = jwt.verify(sellerTok, publicKey);
     if (decoded.email) {
       const seller = await Seller.findOne({ sellerEmail: decoded.email });
-      const products = await Product.find({sellerId:seller.id});
+      const products = await Product.find({ sellerId: seller.id });
       res.json({
         ownerName: seller.ownerName,
         shopName: seller.shopName,
         sellerEmail: seller.sellerEmail,
         verificationSuccess: true,
-        id:seller._id,
-        products:products,
-        openOrders:seller.openOrders,
-        completedOrders:seller.completedOrders,
-        followers:seller.followers
+        id: seller._id,
+        products: products,
+        openOrders: seller.openOrders,
+        completedOrders: seller.completedOrders,
+        followers: seller.followers,
       });
     }
   } catch (error) {
     res.json({ verificationSuccess: false }).status(402);
   }
-}; 
+};
 
 exports.loginSeller = async (req, res) => {
   const { sellerEmail, password } = req.body;
@@ -121,62 +124,76 @@ exports.editSeller = async (req, res) => {
     }
   } catch (error) {
     if (error.code == 11000) {
-      res.json({updated:'alreadyUsedEmail' });
+      res.json({ updated: "alreadyUsedEmail" });
     } else {
       res.json({ someOtherErrorOccured: true });
     }
   }
 };
 
-
-exports.updateOrderStatus = async(req,res) => {
-  const {orderStatus,sellerToken,sellerId,orderDetails} = req.body;
+exports.updateOrderStatus = async (req, res) => {
+  const { orderStatus, sellerToken, sellerId, orderDetails } = req.body;
   try {
     let decoded = jwt.verify(sellerToken, publicKey);
     const seller = await Seller.findById(sellerId);
     const user = await User.findById(orderDetails.orderedBy.userId);
-    if(decoded.email === seller.sellerEmail){
-      if(orderStatus === 'Order is Delivered'){
-        const productThatIsDelivered = seller.openOrders.filter((item)=> item.orderUniqueId === orderDetails.orderUniqueId);
-        const productsThatAreNotDelivered = seller.openOrders.filter((item)=> item.orderUniqueId !== orderDetails.orderUniqueId);
+    if (decoded.email === seller.sellerEmail) {
+      if (orderStatus === "Order is Delivered") {
+        const productThatIsDelivered = seller.openOrders.filter(
+          (item) => item.orderUniqueId === orderDetails.orderUniqueId
+        );
+        const productsThatAreNotDelivered = seller.openOrders.filter(
+          (item) => item.orderUniqueId !== orderDetails.orderUniqueId
+        );
         productThatIsDelivered[0].status = orderStatus;
         seller.completedOrders.push(productThatIsDelivered[0]);
         seller.openOrders = productsThatAreNotDelivered;
         await seller.save();
-        
-        const productWhichStatusShouldBeUpdate = user.orders.filter((item)=> item.orderUniqueId === orderDetails.orderUniqueId);
+
+        const productWhichStatusShouldBeUpdate = user.orders.filter(
+          (item) => item.orderUniqueId === orderDetails.orderUniqueId
+        );
         productWhichStatusShouldBeUpdate[0].status = orderStatus;
         // console.log(user.orders);
         // await user.save();
-        await User.findByIdAndUpdate(orderDetails.orderedBy.userId,{$set:{orders:user.orders}});
-
-        res.json({
-          statusUpdated:true,
-          orderDelivered:true
+        await User.findByIdAndUpdate(orderDetails.orderedBy.userId, {
+          $set: { orders: user.orders },
         });
-      }else{
-        const productWhichStatusIsChanged = seller.openOrders.filter((item)=> item.orderUniqueId === orderDetails.orderUniqueId);
-        productWhichStatusIsChanged[0].status = orderStatus;
-        await Seller.findByIdAndUpdate(sellerId,{$set:{openOrders:seller.openOrders}});
 
-
-        const productWhichStatusShouldBeUpdate = user.orders.filter((item)=> item.orderUniqueId === orderDetails.orderUniqueId);
-        productWhichStatusShouldBeUpdate[0].status = orderStatus;
-        await User.findByIdAndUpdate(orderDetails.orderedBy.userId,{$set:{orders:user.orders}});
         res.json({
-          statusUpdated:true,
-          orderDelivered:false
+          statusUpdated: true,
+          orderDelivered: true,
+        });
+      } else {
+        const productWhichStatusIsChanged = seller.openOrders.filter(
+          (item) => item.orderUniqueId === orderDetails.orderUniqueId
+        );
+        productWhichStatusIsChanged[0].status = orderStatus;
+        await Seller.findByIdAndUpdate(sellerId, {
+          $set: { openOrders: seller.openOrders },
+        });
+
+        const productWhichStatusShouldBeUpdate = user.orders.filter(
+          (item) => item.orderUniqueId === orderDetails.orderUniqueId
+        );
+        productWhichStatusShouldBeUpdate[0].status = orderStatus;
+        await User.findByIdAndUpdate(orderDetails.orderedBy.userId, {
+          $set: { orders: user.orders },
+        });
+        res.json({
+          statusUpdated: true,
+          orderDelivered: false,
         });
       }
-    }else{
+    } else {
       res.json({
-        statusUpdated:false
+        statusUpdated: false,
       });
     }
   } catch (error) {
     res.json({
-      statusUpdated:false,
-      someOtherErrorOccured:true
+      statusUpdated: false,
+      someOtherErrorOccured: true,
     });
   }
-}
+};
