@@ -8,6 +8,9 @@
     "dev": "nodemon index.js",
     "start":"node index.js"
   },
+  "engines": {
+    "node": ">=18.18.0 <19.0.0"
+  },
   "author": "Sujal Rajput",
   "license": "ISC",
   "dependencies": {
