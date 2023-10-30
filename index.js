@@ -22,4 +22,4 @@ server.use("*", (req, res) => {
   res.sendFile(path.resolve(__dirname, "build", "index.html"));
 });
 
-server.listen(process.env.PORT || 8080);
+server.listen(process.env.PORT || 9000);

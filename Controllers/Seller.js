@@ -34,8 +34,17 @@ exports.createSeller = async (req, res) => {
     //   console.log(savedSeller);
     res.json({
       sellerToken: savedSeller.sellerToken,
-      userCreated: true,
+      sellerCreated: true,
       res: true,
+      ownerName: savedSeller.ownerName,
+      shopName: savedSeller.shopName,
+      sellerEmail: savedSeller.sellerEmail,
+      verificationSuccess: true,
+      id: savedSeller._id,
+      products: [],
+      openOrders: savedSeller.openOrders,
+      completedOrders: savedSeller.completedOrders,
+      followers: savedSeller.followers,
     });
   } catch (error) {
     // console.log(error);
@@ -64,6 +73,7 @@ exports.verifySeller = async (req, res) => {
         openOrders: seller.openOrders,
         completedOrders: seller.completedOrders,
         followers: seller.followers,
+        verifiedANDLoggedIn:true
       });
     }
   } catch (error) {
@@ -75,6 +85,7 @@ exports.loginSeller = async (req, res) => {
   const { sellerEmail, password } = req.body;
   try {
     const seller = await Seller.findOne({ sellerEmail: sellerEmail });
+    const products = await Product.find({ sellerId: seller.id });
     if (seller) {
       let newSellerToken = jwt.sign({ email: sellerEmail }, privateKey, {
         algorithm: "RS256",
@@ -86,6 +97,15 @@ exports.loginSeller = async (req, res) => {
           sellerToken: newSellerToken,
           loginSuccess: true,
           res: true,
+          ownerName: seller.ownerName,
+          shopName: seller.shopName,
+          sellerEmail: seller.sellerEmail,
+          verificationSuccess: true,
+          id: seller._id,
+          products: products,
+          openOrders: seller.openOrders,
+          completedOrders: seller.completedOrders,
+          followers: seller.followers,
         });
       } else {
         res.json({ loginSuccess: false, res: true });
