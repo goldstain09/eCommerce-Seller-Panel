@@ -1,5 +1,16 @@
 Project Name - "ECOMMERCE's Seller Panel"
 
+Live Demo - https://seller-panel-project.onrender.com/
+
+Test Users OR Seller - [
+    Email - weirdonz@gmail.com
+    Password - sujal2004
+
+    Email - singhania@565gmail.com
+    Password - sujal2004
+]
+
+
 Frontend (ReactJS):
 
 Description:
